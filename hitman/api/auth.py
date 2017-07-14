@@ -69,7 +69,7 @@ def authenticate():
 		__log.debug('User session is not valid redirecting to /landing')
 		return redirect(url_for('auth.landing') )
 	__log.debug('Redirecting request to 42 oauth endpoint')
-	return oauth42.authorize(callback=url_for('auth.authorized', _external = True))
+	return oauth42.authorize(callback=url_for('auth.authorized', _external = True, _scheme='https'))
 
 @auth_app.route('/authorized')
 def authorized():
