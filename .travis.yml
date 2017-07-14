@@ -1,0 +1,29 @@
+sudo: required
+language: python
+services:
+- docker
+before_install:
+- echo "$TRAVIS_COMMIT"
+script:
+- docker build -t "$DOCKER_USER/hitman_auth" .
+- docker tag "$DOCKER_USER/hitman_auth:latest" "$DOCKER_USER/hitman_auth:$(echo $TRAVIS_COMMIT|
+  cut -c-10)"
+- docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+- docker push "$DOCKER_USER/hitman_auth"
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_014e04d8df48_key -iv $encrypted_014e04d8df48_iv
+  -in deploy_key.enc -out /tmp/deploy_key -d
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/deploy_key
+- ssh-add /tmp/deploy_key
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ssh -o StrictHostKeyChecking=no ubuntu@hitman.tmacs.space "./deploy.sh deploy
+    auth $(echo $TRAVIS_COMMIT| cut -c-10)"
+  on:
+    branch: master
+env:
+  global:
+  - secure: tqAWOCLAcW0jigVNjLhb0dLPLYL2eeFOrEvnYdkqHcS6eBQU1YtKwobyIVpalB7TYqcyRFg7pEYCkfCAYWffU3P6vqhNbYnOElgeOzXW1Pc5vPKJ62ZkasqQVK5jjUOxoUFNUYbiFeyBxQwJ5GMWyDX//xnbnJoM7VWHMHymvN4ThAJmTr+oRYOqI1pVdXiHvZu2MIKwoiXJ6BsGzdampgAJGi6SbUQXiQFQfDjmVOa37Qf/Nni7oGHDrcNFORFyPk2Nrbkzu7C3D/oxYM+BiiCwT32m/6NtWFBkkndkMvD8xn3SyuXwKVP0vhArq3ZMWAUwH1IqE1uo+yUnJoMAvSzXnV9iXh81RQVscH69W/SHAVHfDXXFds7nHpQZPMtuUIoNBqtxsY8eJYhaZX/zhjGXz3k6scCJqvXG73Bb9UlxGKPjN/jw5R6hl3gfuVo37UFxr5Mdj3hYhUVzLh9bhA5mGhLtoUn+PxaTYDMCbARG9+h37GXYTeuJ3mrS8yASsUYAjAuQWPPXXzlAFu70EmvA08r8pyRgu4QaHpqUAhUNbln3I5Bmxq+d6M+a0k6riGPz61eIoj39jq6AAV9Y3oAFjHO+u5NUx+nOsKjy6NFOBNYlxcQVr4Yf+aZL3kQtfTdyiANhtJRorOifZXrmpe6mkho5Nt3ldYTZ+e+uw4o=
+  - secure: EeErMKCXs1WAHgMPrGbg0zBtxgOg3c0oSRgtLNJ0Fwinvo5HXX6txgAVXHjKjtLzgPlmGwOty06+YxdwvZevpCsOwp1LFchlrAS1oAmmDvk/T646BhAk7COvok3mYAIkJY9KygQqIQybd/LzYK3IcaP6gyiX9PYN98nn/tlEF/NVqy2hvUSj2Yv1Hm5uvgSu5msF3+V9ZYYUDnMfGAZWp9YL3HIDH4KuJZrajI++WuAVfZrlU7GqetXb3SEoo3vlTQzHwkvsx1g17e34E9TVP3f3A6lJQmH7hYwDX676Uj8qlUZawtwJ4hl/UTCPScSLmwmGZnT2G1u+KnqJqC+I5hIIVIRzZXg11cV6WPplMlLNkw+8gTz4CUoz/GhGXpx0fFEccUM6sVfqh7O0hj6yrVfvutnV/O9jmhH2KozQvdl0YcB2JnbzQ0mP1aJ72ftSFkpZbRaN+jeA2m5SqNz5+qVlSMbqD7lmun/sEHo4ifbRwoqazZUohjUwy6BTA4g0UNEgMdwowlD1X0PpwXHTknb67FjsEP2aDV6v0umz1Y73LJJioP2Eh2r38t4nDBLecR0jq3P8VwsovtckNMmtr7i5wo9wb8ORgCVYndQN3wH6n3/i2Ubn79vE+c1Gbqzcr5EryT7rT0HDa3iMTBeJgxQkyqbz8hMOO9vBTOBz5XQ=
